@@ -4,6 +4,13 @@ class Violation < ActiveRecord::Base
 
   before_validation :sanitize_fields
 
+  CRITICAL_FLAGS = ["Critical"]
+  NON_CRITICAL_FLAGS = ["Not Critical", "Not Applicable"]
+
+  def self.critical_flag?(flag)
+    CRITICAL_FLAGS.include? flag
+  end
+
   private
 
   def sanitize_fields
