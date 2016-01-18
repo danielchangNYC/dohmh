@@ -8,7 +8,7 @@ class InspectionResultsParser
   end
 
   def call
-    CSV.foreach(FILE_PATH) do |row|
+    CSV.read(FILE_PATH, headers: true).each do |row|
       # find or create in db
     end
   end
