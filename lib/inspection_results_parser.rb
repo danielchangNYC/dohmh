@@ -46,7 +46,7 @@ class InspectionResultsParser
     update_violations!(inspection, row)
   end
 
-  def update_establishment_from(establishment, row)
+  def update_establishment_from!(establishment, row)
     establishment.dba                 = row["DBA"]
     establishment.boro                = row["BORO"]
     establishment.zipcode             = row["ZIPCODE"]
@@ -55,7 +55,7 @@ class InspectionResultsParser
     establishment.save!
   end
 
-  def update_inspection_from(inspection, row)
+  def update_inspection_from!(inspection, row)
     inspection.score           = row["SCORE"] if row["SCORE"]
     inspection.grade           = row["GRADE"].downcase if row["GRADE"]
     inspection.grade_date      = Datetime.parse(row["GRADE DATE"]) if row["GRADE DATE"]
