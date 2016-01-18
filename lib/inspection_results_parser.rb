@@ -67,10 +67,12 @@ class InspectionResultsParser
   def update_violations!(inspection, row)
     return false unless violations?(row)
 
-    violation = Violation.find_or_create_by!(
+    violation = Violation.find_or_initialize_by(
       code: row["VIOLATION CODE"].downcase,
-      description: row["VIOLATION DESCRIPTION"].downcase,
       critical: critical_violation?(row))
+
+    violation.description = row["VIOLATION DESCRIPTION"].downcase if validation.description.blank?
+    violation.save!
 
     if !InspectionViolation.exists? violation: violation, inspection: inspection
       inspection.violations << violation
