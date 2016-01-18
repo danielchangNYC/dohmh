@@ -1,7 +1,7 @@
 require 'csv'
 
 class InspectionResultsParser
-  attr_accessor :unrecorded_rows
+  attr_accessor :unrecorded_rows, :errored_rows
 
   FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
 
@@ -11,6 +11,7 @@ class InspectionResultsParser
 
   def initialize
     @unrecorded_rows = []
+    @errored_rows = []
   end
 
   def call
@@ -25,25 +26,38 @@ class InspectionResultsParser
         puts "Unrecorded row: #{row.inspect}"
       end
     end
+
+    record_errors
   end
 
   private
+
+  def record_errors
+    puts "\n =========== ERRORS: #{errored_rows.length} ============ \n"
+    errored_rows.each do |row|
+      puts row.inspect
+    end
+  end
 
   def valid?(row)
     !row['ACTION'].blank? && !row["DBA"].blank?
   end
 
   def record_entry!(row)
-    establishment = Establishment.find_or_initialize_by(camis: row["CAMIS"])
-    update_establishment_from!(establishment, row)
+    begin
+      establishment = Establishment.find_or_initialize_by(camis: row["CAMIS"])
+      update_establishment_from!(establishment, row)
 
-    inspection = Inspection.find_or_initialize_by(
-      establishment: establishment,
-      inspection_type: row["INSPECTION TYPE"].downcase,
-      inspection_date: DateTime.strptime(row["INSPECTION DATE"], "%m/%d/%Y"))
+      inspection = Inspection.find_or_initialize_by(
+        establishment: establishment,
+        inspection_type: row["INSPECTION TYPE"].downcase,
+        inspection_date: DateTime.strptime(row["INSPECTION DATE"], "%m/%d/%Y"))
 
-    update_inspection_from!(inspection, row)
-    update_violations!(inspection, row)
+      update_inspection_from!(inspection, row)
+      update_violations!(inspection, row)
+    rescue StandardError => e
+      errored_rows << row
+    end
   end
 
   def update_establishment_from!(establishment, row)
