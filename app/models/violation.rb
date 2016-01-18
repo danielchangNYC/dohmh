@@ -1,4 +1,7 @@
 class Violation < ActiveRecord::Base
+  has_many :inspection_violations
+  has_many :inspections, through: :inspection_violations
+
   validates :code, presence: true, uniqueness: true
   validates :critical, inclusion: { in: [true, false] }
 

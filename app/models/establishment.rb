@@ -1,4 +1,6 @@
 class Establishment < ActiveRecord::Base
+  has_many :inspections
+
   validates :camis, presence: true, uniqueness: true
   validates :dba, presence: true
   validates :boro, presence: true

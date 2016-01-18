@@ -1,5 +1,7 @@
 class Inspection < ActiveRecord::Base
   belongs_to :establishment
+  has_many :inspection_violations
+  has_many :violations, through: :inspection_violations
 
   validates :establishment_id, presence: true
   validates :action, presence: true
