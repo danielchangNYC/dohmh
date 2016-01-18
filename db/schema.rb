@@ -17,8 +17,8 @@ ActiveRecord::Schema.define(version: 20160118015822) do
     t.string   "camis",               null: false
     t.string   "dba",                 null: false
     t.string   "boro",                null: false
-    t.integer  "zipcode",             null: false
-    t.integer  "phone"
+    t.string   "zipcode",             null: false
+    t.string   "phone"
     t.string   "cuisine_description", null: false
     t.datetime "created_at",          null: false
     t.datetime "updated_at",          null: false

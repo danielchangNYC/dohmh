@@ -4,8 +4,8 @@ class CreateTables < ActiveRecord::Migration
       t.string  :camis,               null: false # dohmh's uniq indentifier
       t.string  :dba,                 null: false # establishment name, e.g. Nobu
       t.string  :boro,                null: false
-      t.integer :zipcode,             null: false
-      t.integer :phone
+      t.string  :zipcode,             null: false
+      t.string  :phone
       t.string  :cuisine_description, null: false
 
       t.timestamps null: false
