@@ -14,7 +14,7 @@
 ActiveRecord::Schema.define(version: 20160118015822) do
 
   create_table "establishments", force: :cascade do |t|
-    t.integer  "camis",               null: false
+    t.string   "camis",               null: false
     t.string   "dba",                 null: false
     t.string   "boro",                null: false
     t.integer  "zipcode",             null: false

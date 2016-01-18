@@ -1,7 +1,7 @@
 class CreateTables < ActiveRecord::Migration
   def change
     create_table :establishments do |t|
-      t.integer :camis,               null: false # dohmh's uniq indentifier
+      t.string  :camis,               null: false # dohmh's uniq indentifier
       t.string  :dba,                 null: false # establishment name, e.g. Nobu
       t.string  :boro,                null: false
       t.integer :zipcode,             null: false
