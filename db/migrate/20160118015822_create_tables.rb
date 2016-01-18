@@ -20,7 +20,7 @@ class CreateTables < ActiveRecord::Migration
       t.string   :grade
       t.datetime :grade_date
       t.datetime :record_date
-      t.string   :inspection_type
+      t.string   :inspection_type,    null: false
 
       t.timestamps null: false
     end

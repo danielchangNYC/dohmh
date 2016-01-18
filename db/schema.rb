@@ -39,7 +39,7 @@ ActiveRecord::Schema.define(version: 20160118015822) do
     t.string   "grade"
     t.datetime "grade_date"
     t.datetime "record_date"
-    t.string   "inspection_type"
+    t.string   "inspection_type",  null: false
     t.datetime "created_at",       null: false
     t.datetime "updated_at",       null: false
   end
