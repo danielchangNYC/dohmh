@@ -56,7 +56,7 @@ class InspectionResultsParser
   end
 
   def update_inspection_from!(inspection, row)
-    inspection.action          = row["ACDTION"].downcase if row["ACTION"]
+    inspection.action          = row["ACTION"].downcase if row["ACTION"]
     inspection.score           = row["SCORE"] if row["SCORE"]
     inspection.grade           = row["GRADE"].downcase if row["GRADE"]
     inspection.grade_date      = DateTime.strptime(row["GRADE DATE"], "%m/%d/%Y") if row["GRADE DATE"]
