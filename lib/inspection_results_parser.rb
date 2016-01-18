@@ -39,7 +39,7 @@ class InspectionResultsParser
 
     inspection = Inspection.find_or_initialize_by(
       establishment: establishment,
-      action: row["ACTION"].downcase,
+      inspection_type: row["INSPECTION TYPE"].downcase,
       inspection_date: DateTime.strptime(row["INSPECTION DATE"], "%m/%d/%Y"))
 
     update_inspection_from!(inspection, row)
@@ -56,11 +56,11 @@ class InspectionResultsParser
   end
 
   def update_inspection_from!(inspection, row)
+    inspection.action          = row["ACDTION"].downcase if row["ACTION"]
     inspection.score           = row["SCORE"] if row["SCORE"]
     inspection.grade           = row["GRADE"].downcase if row["GRADE"]
     inspection.grade_date      = DateTime.strptime(row["GRADE DATE"], "%m/%d/%Y") if row["GRADE DATE"]
     inspection.record_date     = DateTime.strptime(row["RECORD DATE"], "%m/%d/%Y") if row["RECORD DATE"]
-    inspection.inspection_type = row["INSPECTION TYPE"] if row["INSPECTION TYPE"]
     inspection.save!
   end
 

@@ -5,7 +5,8 @@ class Inspection < ActiveRecord::Base
 
   validates :establishment_id, presence: true
   validates :action, presence: true
-  validates :inspection_date, presence: true, uniqueness: { scope: :establishment_id }
+  validates :inspection_type, presence: true
+  validates :inspection_date, presence: true, uniqueness: { scope: [:establishment_id, :inspection_type] }
 
   before_validation :sanitize_fields
 
