@@ -6,6 +6,6 @@ require 'sinatra/activerecord/rake'
 namespace :data do
   desc "Parse CSV and import to DB"
   task :import, :env do |cmd, args|
-    InspectionResultsImporter.run
+    InspectionResultsImporter.instance.run
   end
 end
