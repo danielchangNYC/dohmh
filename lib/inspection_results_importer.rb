@@ -1,6 +1,6 @@
 require 'csv'
 
-class InspectionResultsParser
+class InspectionResultsImporter
   attr_accessor :unrecorded_rows, :errored_rows
 
   FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
@@ -17,7 +17,7 @@ class InspectionResultsParser
   def call
     puts "Reading CSV. This will take a moment..."
 
-    CSV.read(FILE_PATH, headers: true, converters: :numeric).each do |row|
+    CSV.read(FILE_PATH, headers: true).lazy.each do |row|
       if valid?(row)
         puts "Recording row: #{row.inspect}"
         record_entry!(row)
