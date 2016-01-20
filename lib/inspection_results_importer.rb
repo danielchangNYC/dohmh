@@ -1,16 +1,20 @@
+require 'logger'
+require 'ruby-progressbar'
 require 'parallel'
 require 'smarter_csv'
 
 class InspectionResultsImporter
   include Singleton
 
-  attr_accessor :unrecorded_rows, :errored_rows
+  attr_accessor :unrecorded_rows, :errors, :logger, :reconnected
 
   FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
+  LOGGER_FILE_PATH = File.expand_path('../log/import.log', File.dirname(__FILE__))
 
   def initialize
     @unrecorded_rows = []
-    @errored_rows = []
+    @errors = []
+    @logger = Logger.new(LOGGER_FILE_PATH)
   end
 
   def run
@@ -22,42 +26,26 @@ class InspectionResultsImporter
 
     chunks = SmarterCSV.process(FILE_PATH, opts)
 
-    Parallel.map(chunks) do |chunk|
+    Parallel.each(chunks, progress: "Importing...") do |chunk|
       worker(chunk)
     end
-
-    record_errors
   end
 
   def worker(chunk)
     chunk.each do |row|
-      Benchmark do
-        ActiveRecord::Base.transaction do
-          if valid?(row)
-            record_entry!(row)
-          else
-            unrecorded_rows << row
-          end
+      ActiveRecord::Base.connection.reconnect!
+      ActiveRecord::Base.transaction do
+        if valid?(row)
+          logger.info "Recording camis #{row[:camis]}"
+          record_entry!(row)
+        else
+          logger.info "====UNABLE TO RECORD=== camis #{row[:camis]}"
         end
       end
     end
   end
 
   private
-
-  def record_errors
-    File.open('../log/errors.log') do |f|
-      f.write "\n =========== ERRORS: #{errored_rows.length} ============ \n"
-
-      errored_rows.each do |row|
-        f.write row.inspect
-      end
-
-      unrecorded_rows.each do |row|
-        f.write row.inspect
-      end
-    end
-  end
 
   def valid?(row)
     !row[:action].blank? && !row[:dba].blank?
@@ -76,7 +64,7 @@ class InspectionResultsImporter
       update_inspection_from!(inspection, row)
       update_violations!(inspection, row)
     rescue StandardError => e
-      errored_rows << row
+      logger.error e
     end
   end
 
