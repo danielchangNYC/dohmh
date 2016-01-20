@@ -1,31 +1,46 @@
-require 'csv'
+require 'parallel'
+require 'smarter_csv'
 
 class InspectionResultsImporter
+  include Singleton
+
   attr_accessor :unrecorded_rows, :errored_rows
 
   FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
-
-  def self.run
-    new.call
-  end
 
   def initialize
     @unrecorded_rows = []
     @errored_rows = []
   end
 
-  def call
-    puts "Reading CSV. This will take a moment..."
+  def run
+    opts =  { chunk_size: 1000,
+              value_converters: {
+                grade_date: DateConverter,
+                record_date: DateConverter,
+                inspection_date: DateConverter }}
 
-    CSV.foreach(FILE_PATH, headers: true, header_converters: :symbol).each do |row|
-      if valid?(row)
-        record_entry!(row)
-      else
-        unrecorded_rows << row
-      end
+    chunks = SmarterCSV.process(FILE_PATH, opts)
+
+    Parallel.map(chunks) do |chunk|
+      worker(chunk)
     end
 
     record_errors
+  end
+
+  def worker(chunk)
+    chunk.each do |row|
+      Benchmark do
+        ActiveRecord::Base.transaction do
+          if valid?(row)
+            record_entry!(row)
+          else
+            unrecorded_rows << row
+          end
+        end
+      end
+    end
   end
 
   private
@@ -56,7 +71,7 @@ class InspectionResultsImporter
       inspection = Inspection.find_or_initialize_by(
         establishment: establishment,
         inspection_type: row[:inspection_type].downcase,
-        inspection_date: DateTime.strptime(row[:inspection_date], "%m/%d/%Y"))
+        inspection_date: row[:inspection_date])
 
       update_inspection_from!(inspection, row)
       update_violations!(inspection, row)
@@ -78,8 +93,8 @@ class InspectionResultsImporter
     inspection.action          = row[:action].downcase if row[:action]
     inspection.score           = row[:score] if row[:score]
     inspection.grade           = row[:grade].downcase if row[:grade]
-    inspection.grade_date      = DateTime.strptime(row[:grade_date], "%m/%d/%Y") if row[:grade_date]
-    inspection.record_date     = DateTime.strptime(row[:record_date], "%m/%d/%Y") if row[:record_date]
+    inspection.grade_date      = row[:grade_date] if row[:grade_date]
+    inspection.record_date     = row[:record_date] if row[:record_date]
     inspection.save!
   end
 
@@ -105,5 +120,11 @@ class InspectionResultsImporter
 
   def critical_violation?(row)
     Violation.critical_flag? row[:critical_flag]
+  end
+end
+
+class DateConverter
+  def self.convert(value)
+    Date.strptime(value, '%m/%d/%Y')
   end
 end
