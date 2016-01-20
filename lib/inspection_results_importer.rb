@@ -33,9 +33,12 @@ class InspectionResultsImporter
   private
 
   def record_errors
-    puts "\n =========== ERRORS: #{errored_rows.length} ============ \n"
-    errored_rows.each do |row|
-      puts row.inspect
+    File.open('../log/errors.log') do |f|
+      f.write "\n =========== ERRORS: #{errored_rows.length} ============ \n"
+
+      errored_rows.each do |row|
+        f.write row.inspect
+      end
     end
   end
 
