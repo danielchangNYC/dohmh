@@ -6,14 +6,13 @@ require 'smarter_csv'
 class InspectionResultsImporter
   include Singleton
 
-  attr_accessor :unrecorded_rows, :errors, :logger, :reconnected
+  attr_accessor :logger, :debug
 
-  FILE_PATH = File.expand_path('./results-test.csv', File.dirname(__FILE__))
+  FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
   LOGGER_FILE_PATH = File.expand_path('../log/import.log', File.dirname(__FILE__))
 
   def initialize
-    @unrecorded_rows = []
-    @errors = []
+    @debug = false
     @logger = Logger.new(LOGGER_FILE_PATH)
   end
 
@@ -26,20 +25,128 @@ class InspectionResultsImporter
 
     chunks = SmarterCSV.process(FILE_PATH, opts)
 
-    Parallel.each(chunks, in_threads: 5, progress: "Importing...") do |chunk|
-      worker(chunk)
+    Parallel.each(chunks, in_processes: 5, progress: "Recording Establishments...") do |chunk|
+      record_establishments!(chunk)
+    end
+
+    Parallel.each(chunks, in_processes: 5, progress: "Recording Violations...") do |chunk|
+      record_violations!(chunk)
+    end
+
+    Parallel.each(chunks, in_processes: 5, progress: "Recording Inspections...") do |chunk|
+      record_inspections!(chunk)
+    end
+
+    Parallel.each(chunks, in_processes: 10, progress: "Recording Inspections...") do |chunk|
+      record_inspection_violations!(chunk)
     end
   end
 
-  def worker(chunk)
+  def record_establishments!(chunk)
     chunk.each do |row|
-      ActiveRecord::Base.connection.reconnect!
-        if valid?(row)
-          logger.info "Recording camis #{row[:camis]}"
-          record_entry!(row)
-        else
-          logger.info "====UNABLE TO RECORD=== camis #{row[:camis]}"
+      logger.debug "Recording camis #{row[:camis]}" if debug
+      tries = 15
+
+      begin
+        ActiveRecord::Base.connection.reconnect!
+        ActiveRecord::Base.transaction do
+          establishment = Establishment.find_or_initialize_by(camis: row[:camis])
+          update_establishment_from!(establishment, row)
         end
+      rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
+        if tries > 0
+          tries -= 1
+          retry
+        else
+          logger.error e
+        end
+      end
+
+    end
+  end
+
+  def record_violations!(chunk)
+    chunk.each do |row|
+      return false unless violations?(row)
+      logger.debug "Recording violation #{row[:camis]}" if debug
+      tries = 20
+
+      begin
+        ActiveRecord::Base.connection.reconnect!
+        ActiveRecord::Base.transaction do
+          violation = Violation.find_or_initialize_by(
+            code: row[:violation_code].downcase,
+            critical: critical_violation?(row))
+          violation.description = row[:violation_description].downcase if violation.description.blank?
+          violation.save!
+        end
+      rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
+        if tries > 0
+          tries -= 1
+          retry
+        else
+          logger.error e
+        end
+      end
+
+    end
+  end
+
+  def record_inspections!(chunk)
+    chunk.each do |row|
+      logger.debug "Recording inspection #{row[:camis]}" if debug
+      tries = 25
+
+      begin
+        ActiveRecord::Base.connection.reconnect!
+        establishment = Establishment.find_by!(camis: row[:camis])
+
+        ActiveRecord::Base.transaction do
+          inspection = Inspection.find_or_initialize_by(
+            establishment: establishment,
+            inspection_type: row[:inspection_type].downcase,
+            inspection_date: row[:inspection_date])
+          update_inspection_from!(inspection, row)
+        end
+      rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
+        if tries > 0
+          tries -= 1
+          retry
+        else
+          logger.error e
+        end
+      end
+
+    end
+  end
+
+  def record_inspection_violations!(chunk)
+    chunk.each do |row|
+      return false unless violations?(row)
+      logger.info "Recording inspection violation #{row[:camis]}" if debug
+      tries = 30
+
+      begin
+        ActiveRecord::Base.connection.reconnect!
+        establishment = Establishment.find_by!(camis: row[:camis])
+        inspection = Inspection.find_by!(
+            establishment: establishment,
+            inspection_type: row[:inspection_type].downcase,
+            inspection_date: row[:inspection_date])
+        violation = Violation.find_by!(code: row[:violation_code].downcase)
+
+        ActiveRecord::Base.transaction do
+          update_violations!(inspection, violation, row)
+        end
+      rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
+        if tries > 0
+          tries -= 1
+          retry
+        else
+          logger.error e
+        end
+      end
+
     end
   end
 
@@ -47,25 +154,6 @@ class InspectionResultsImporter
 
   def valid?(row)
     !row[:action].blank? && !row[:dba].blank?
-  end
-
-  def record_entry!(row)
-    begin
-      ActiveRecord::Base.transaction do
-        establishment = Establishment.find_or_initialize_by(camis: row[:camis])
-        update_establishment_from!(establishment, row)
-
-        inspection = Inspection.find_or_initialize_by(
-          establishment: establishment,
-          inspection_type: row[:inspection_type].downcase,
-          inspection_date: row[:inspection_date])
-
-        update_inspection_from!(inspection, row)
-        update_violations!(inspection, row)
-      end
-    rescue StandardError => e
-      logger.error e
-    end
   end
 
   def update_establishment_from!(establishment, row)
@@ -86,16 +174,7 @@ class InspectionResultsImporter
     inspection.save!
   end
 
-  def update_violations!(inspection, row)
-    return false unless violations?(row)
-
-    violation = Violation.find_or_initialize_by(
-      code: row[:violation_code].downcase,
-      critical: critical_violation?(row))
-
-    violation.description = row[:violation_description].downcase if violation.description.blank?
-    violation.save!
-
+  def update_violations!(inspection, violation, row)
     if !InspectionViolation.exists? violation: violation, inspection: inspection
       inspection.violations << violation
       inspection.save!
