@@ -41,5 +41,11 @@ class CreateTables < ActiveRecord::Migration
 
       t.timestamps null: false
     end
+
+    add_index :inspections, :establishment_id
+    add_index :inspection_violations, :inspection_id
+    add_index :inspection_violations, :violation_id
+    add_index :establishments, :cuisine_description
+    add_index :violations, :code
   end
 end
