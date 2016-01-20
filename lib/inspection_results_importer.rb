@@ -17,7 +17,7 @@ class InspectionResultsImporter
   def call
     puts "Reading CSV. This will take a moment..."
 
-    CSV.read(FILE_PATH, headers: true, header_converters: :symbol).each do |row|
+    CSV.foreach(FILE_PATH, headers: true, header_converters: :symbol).each do |row|
       if valid?(row)
         record_entry!(row)
       else
