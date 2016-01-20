@@ -8,8 +8,6 @@ gem 'require_all'
 gem 'sqlite3'
 gem 'thin'
 gem 'shotgun'
-gem 'smarter_csv'
-gem 'parallel'
 
 group :development do
   gem 'pry'
