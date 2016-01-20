@@ -8,7 +8,7 @@ class InspectionResultsImporter
 
   attr_accessor :unrecorded_rows, :errors, :logger, :reconnected
 
-  FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
+  FILE_PATH = File.expand_path('./results-test.csv', File.dirname(__FILE__))
   LOGGER_FILE_PATH = File.expand_path('../log/import.log', File.dirname(__FILE__))
 
   def initialize
@@ -26,7 +26,7 @@ class InspectionResultsImporter
 
     chunks = SmarterCSV.process(FILE_PATH, opts)
 
-    Parallel.each(chunks, progress: "Importing...") do |chunk|
+    Parallel.each(chunks, in_threads: 5, progress: "Importing...") do |chunk|
       worker(chunk)
     end
   end
@@ -34,14 +34,12 @@ class InspectionResultsImporter
   def worker(chunk)
     chunk.each do |row|
       ActiveRecord::Base.connection.reconnect!
-      ActiveRecord::Base.transaction do
         if valid?(row)
           logger.info "Recording camis #{row[:camis]}"
           record_entry!(row)
         else
           logger.info "====UNABLE TO RECORD=== camis #{row[:camis]}"
         end
-      end
     end
   end
 
@@ -53,16 +51,18 @@ class InspectionResultsImporter
 
   def record_entry!(row)
     begin
-      establishment = Establishment.find_or_initialize_by(camis: row[:camis])
-      update_establishment_from!(establishment, row)
+      ActiveRecord::Base.transaction do
+        establishment = Establishment.find_or_initialize_by(camis: row[:camis])
+        update_establishment_from!(establishment, row)
 
-      inspection = Inspection.find_or_initialize_by(
-        establishment: establishment,
-        inspection_type: row[:inspection_type].downcase,
-        inspection_date: row[:inspection_date])
+        inspection = Inspection.find_or_initialize_by(
+          establishment: establishment,
+          inspection_type: row[:inspection_type].downcase,
+          inspection_date: row[:inspection_date])
 
-      update_inspection_from!(inspection, row)
-      update_violations!(inspection, row)
+        update_inspection_from!(inspection, row)
+        update_violations!(inspection, row)
+      end
     rescue StandardError => e
       logger.error e
     end
@@ -93,7 +93,7 @@ class InspectionResultsImporter
       code: row[:violation_code].downcase,
       critical: critical_violation?(row))
 
-    violation.description = row[:violation_description].downcase if validation.description.blank?
+    violation.description = row[:violation_description].downcase if violation.description.blank?
     violation.save!
 
     if !InspectionViolation.exists? violation: violation, inspection: inspection
