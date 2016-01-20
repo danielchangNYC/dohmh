@@ -25,15 +25,15 @@ class InspectionResultsImporter
 
     chunks = SmarterCSV.process(FILE_PATH, opts)
 
-    Parallel.each(chunks, in_processes: 5, progress: "Recording Establishments...") do |chunk|
+    Parallel.each(chunks, in_processes: 7, progress: "Recording Establishments...") do |chunk|
       record_establishments!(chunk)
     end
 
-    Parallel.each(chunks, in_processes: 5, progress: "Recording Violations...") do |chunk|
+    Parallel.each(chunks, in_processes: 7, progress: "Recording Violations...") do |chunk|
       record_violations!(chunk)
     end
 
-    Parallel.each(chunks, in_processes: 5, progress: "Recording Inspections...") do |chunk|
+    Parallel.each(chunks, in_processes: 7, progress: "Recording Inspections...") do |chunk|
       record_inspections!(chunk)
     end
 
@@ -45,7 +45,7 @@ class InspectionResultsImporter
   def record_establishments!(chunk)
     chunk.each do |row|
       logger.debug "Recording camis #{row[:camis]}" if debug
-      tries = 20
+      tries = 60
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -70,7 +70,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless violations?(row)
       logger.debug "Recording violation #{row[:camis]}" if debug
-      tries = 25
+      tries = 60
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -96,8 +96,9 @@ class InspectionResultsImporter
 
   def record_inspections!(chunk)
     chunk.each do |row|
+      return false unless valid_inspection?(row)
       logger.debug "Recording inspection #{row[:camis]}" if debug
-      tries = 30
+      tries = 60
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -125,9 +126,9 @@ class InspectionResultsImporter
 
   def record_inspection_violations!(chunk)
     chunk.each do |row|
-      return false unless violations?(row)
+      return false unless violations?(row) || valid_inspection?(row)
       logger.info "Recording inspection violation #{row[:camis]}" if debug
-      tries = 35
+      tries = 60
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -157,6 +158,10 @@ class InspectionResultsImporter
 
   def valid?(row)
     !row[:action].blank? && !row[:dba].blank?
+  end
+
+  def valid_inspection?(row)
+    !row[:inspection_type].blank?
   end
 
   def update_establishment_from!(establishment, row)
