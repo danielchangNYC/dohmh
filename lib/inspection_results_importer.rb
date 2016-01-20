@@ -45,12 +45,13 @@ class InspectionResultsImporter
   def record_establishments!(chunk)
     chunk.each do |row|
       logger.debug "Recording camis #{row[:camis]}" if debug
-      tries = 15
+      tries = 20
 
       begin
         ActiveRecord::Base.connection.reconnect!
         ActiveRecord::Base.transaction do
           establishment = Establishment.find_or_initialize_by(camis: row[:camis])
+          next if establishment.persisted?
           update_establishment_from!(establishment, row)
         end
       rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
@@ -69,7 +70,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless violations?(row)
       logger.debug "Recording violation #{row[:camis]}" if debug
-      tries = 20
+      tries = 25
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -77,6 +78,7 @@ class InspectionResultsImporter
           violation = Violation.find_or_initialize_by(
             code: row[:violation_code].downcase,
             critical: critical_violation?(row))
+          next if violation.persisted?
           violation.description = row[:violation_description].downcase if violation.description.blank?
           violation.save!
         end
@@ -95,7 +97,7 @@ class InspectionResultsImporter
   def record_inspections!(chunk)
     chunk.each do |row|
       logger.debug "Recording inspection #{row[:camis]}" if debug
-      tries = 25
+      tries = 30
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -106,6 +108,7 @@ class InspectionResultsImporter
             establishment: establishment,
             inspection_type: row[:inspection_type].downcase,
             inspection_date: row[:inspection_date])
+          next if inspection.persisted?
           update_inspection_from!(inspection, row)
         end
       rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
@@ -124,7 +127,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless violations?(row)
       logger.info "Recording inspection violation #{row[:camis]}" if debug
-      tries = 30
+      tries = 35
 
       begin
         ActiveRecord::Base.connection.reconnect!
