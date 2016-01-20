@@ -5,7 +5,7 @@ class InspectionResultsImporter
 
   FILE_PATH = File.expand_path('./results.csv', File.dirname(__FILE__))
 
-  def self.parse
+  def self.run
     new.call
   end
 
