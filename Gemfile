@@ -10,6 +10,7 @@ gem 'thin'
 gem 'shotgun'
 gem 'smarter_csv'
 gem 'parallel'
+gem 'ruby-progressbar'
 
 group :development do
   gem 'pry'
