@@ -19,11 +19,9 @@ class InspectionResultsImporter
 
     CSV.read(FILE_PATH, headers: true).lazy.each do |row|
       if valid?(row)
-        puts "Recording row: #{row.inspect}"
         record_entry!(row)
       else
         unrecorded_rows << row
-        puts "Unrecorded row: #{row.inspect}"
       end
     end
 
@@ -37,6 +35,10 @@ class InspectionResultsImporter
       f.write "\n =========== ERRORS: #{errored_rows.length} ============ \n"
 
       errored_rows.each do |row|
+        f.write row.inspect
+      end
+
+      unrecorded_rows.each do |row|
         f.write row.inspect
       end
     end
