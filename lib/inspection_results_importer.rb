@@ -44,6 +44,7 @@ class InspectionResultsImporter
 
   def record_establishments!(chunk)
     chunk.each do |row|
+      return false unless valid_establishment?(row)
       logger.debug "Recording camis #{row[:camis]}" if debug
       tries = 60
 
@@ -68,7 +69,7 @@ class InspectionResultsImporter
 
   def record_violations!(chunk)
     chunk.each do |row|
-      return false unless violations?(row)
+      return false unless valid_establishment?(row) && violations?(row)
       logger.debug "Recording violation #{row[:camis]}" if debug
       tries = 60
 
@@ -96,7 +97,7 @@ class InspectionResultsImporter
 
   def record_inspections!(chunk)
     chunk.each do |row|
-      return false unless valid_inspection?(row)
+      return false unless valid_establishment?(row) && valid_inspection?(row)
       logger.debug "Recording inspection #{row[:camis]}" if debug
       tries = 60
 
@@ -127,7 +128,7 @@ class InspectionResultsImporter
   def record_inspection_violations!(chunk)
     chunk.each do |row|
       return false unless violations?(row) || valid_inspection?(row)
-      logger.info "Recording inspection violation #{row[:camis]}" if debug
+      logger.debug "Recording inspection violation #{row[:camis]}" if debug
       tries = 60
 
       begin
@@ -156,7 +157,7 @@ class InspectionResultsImporter
 
   private
 
-  def valid?(row)
+  def valid_establishment?(row)
     !row[:action].blank? && !row[:dba].blank?
   end
 
