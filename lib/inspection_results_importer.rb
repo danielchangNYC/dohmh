@@ -158,7 +158,7 @@ class InspectionResultsImporter
   private
 
   def valid_establishment?(row)
-    !row[:action].blank? && !row[:dba].blank?
+    !row[:action].blank? && !row[:dba].blank? && !row[:building].blank? && !row[:street].blank?
   end
 
   def valid_inspection?(row)
