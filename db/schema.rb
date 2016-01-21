@@ -13,6 +13,9 @@
 
 ActiveRecord::Schema.define(version: 20160118015822) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "establishments", force: :cascade do |t|
     t.string   "camis",               null: false
     t.string   "dba",                 null: false
@@ -26,7 +29,7 @@ ActiveRecord::Schema.define(version: 20160118015822) do
     t.datetime "updated_at",          null: false
   end
 
-  add_index "establishments", ["cuisine_description"], name: "index_establishments_on_cuisine_description"
+  add_index "establishments", ["cuisine_description"], name: "index_establishments_on_cuisine_description", using: :btree
 
   create_table "inspection_violations", force: :cascade do |t|
     t.integer  "inspection_id", null: false
@@ -35,8 +38,8 @@ ActiveRecord::Schema.define(version: 20160118015822) do
     t.datetime "updated_at",    null: false
   end
 
-  add_index "inspection_violations", ["inspection_id"], name: "index_inspection_violations_on_inspection_id"
-  add_index "inspection_violations", ["violation_id"], name: "index_inspection_violations_on_violation_id"
+  add_index "inspection_violations", ["inspection_id"], name: "index_inspection_violations_on_inspection_id", using: :btree
+  add_index "inspection_violations", ["violation_id"], name: "index_inspection_violations_on_violation_id", using: :btree
 
   create_table "inspections", force: :cascade do |t|
     t.integer  "establishment_id", null: false
@@ -51,7 +54,7 @@ ActiveRecord::Schema.define(version: 20160118015822) do
     t.datetime "updated_at",       null: false
   end
 
-  add_index "inspections", ["establishment_id"], name: "index_inspections_on_establishment_id"
+  add_index "inspections", ["establishment_id"], name: "index_inspections_on_establishment_id", using: :btree
 
   create_table "violations", force: :cascade do |t|
     t.string   "code",        null: false
@@ -61,6 +64,6 @@ ActiveRecord::Schema.define(version: 20160118015822) do
     t.datetime "updated_at",  null: false
   end
 
-  add_index "violations", ["code"], name: "index_violations_on_code"
+  add_index "violations", ["code"], name: "index_violations_on_code", using: :btree
 
 end

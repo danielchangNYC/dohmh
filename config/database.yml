@@ -1,18 +1,20 @@
-# SQLite version 3.x
 development:
-  adapter: sqlite3
-  database: db/development.sqlite3
+  adapter: postgresql
+  database: dohmh_development
   pool: 8
   timeout: 10000
+  encoding: unicode
 
 test:
-  adapter: sqlite3
-  database: db/test.sqlite3
+  adapter: postgresql
+  database: dohmh_test
   pool: 8
   timeout: 10000
+  encoding: unicode
 
 production:
-  adapter: sqlite3
-  database: db/production.sqlite3
+  adapter: postgresql
+  database: dohmh_production
   pool: 8
   timeout: 10000
+  encoding: unicode
