@@ -46,7 +46,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless valid_establishment?(row)
       logger.debug "Recording camis #{row[:camis]}" if debug
-      tries = 60
+      tries = 30
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -71,7 +71,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless valid_establishment?(row) && violations?(row)
       logger.debug "Recording violation #{row[:camis]}" if debug
-      tries = 60
+      tries = 30
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -99,7 +99,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless valid_establishment?(row) && valid_inspection?(row)
       logger.debug "Recording inspection #{row[:camis]}" if debug
-      tries = 60
+      tries = 30
 
       begin
         ActiveRecord::Base.connection.reconnect!
@@ -129,7 +129,7 @@ class InspectionResultsImporter
     chunk.each do |row|
       return false unless violations?(row) && valid_inspection?(row)
       logger.debug "Recording inspection violation #{row[:camis]}" if debug
-      tries = 60
+      tries = 30
 
       begin
         ActiveRecord::Base.connection.reconnect!
