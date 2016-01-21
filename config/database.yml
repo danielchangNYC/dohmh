@@ -1,17 +1,18 @@
+# SQLite version 3.x
 development:
-  adapter: mysql
-  database: dohmh_development
+  adapter: sqlite3
+  database: db/development.sqlite3
   pool: 8
   timeout: 10000
 
 test:
-  adapter: mysql
-  database: dohmh_test
+  adapter: sqlite3
+  database: db/test.sqlite3
   pool: 8
   timeout: 10000
 
 production:
-  adapter: mysql
-  database: dohmh_production
+  adapter: sqlite3
+  database: db/production.sqlite3
   pool: 8
   timeout: 10000
