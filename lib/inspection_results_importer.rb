@@ -168,6 +168,8 @@ class InspectionResultsImporter
   def update_establishment_from!(establishment, row)
     establishment.dba                 = row[:dba]
     establishment.boro                = row[:boro]
+    establishment.street              = row[:street]
+    establishment.building            = row[:building]
     establishment.zipcode             = row[:zipcode]
     establishment.phone               = row[:phone] if row[:phone]
     establishment.cuisine_description = row[:cuisine_description]
