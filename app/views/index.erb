@@ -1,1 +1,31 @@
-<h1>Thai Food Recs</h1>
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
+      <h1><%= @cuisine.capitalize %> Food Recs</h1>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Restaurant</th>
+            <th>Borough</th>
+            <th>Address</th>
+            <th>Zipcode</th>
+            <th>Phone</th>
+          </tr>
+        </thead>
+        <% @establishments.each_with_index do |est, i| %>
+          <tbody>
+            <tr>
+              <th scope="row"><%= i %></th>
+              <td><%= est.display_name %></td>
+              <td><%= est.boro.capitalize %></td>
+              <td><%= est.display_address %></td>
+              <td><%= est.zipcode %></td>
+              <td><%= est.phone %></td>
+            </tr>
+          </tbody>
+        <% end %>
+      </table>
+    </div> <!-- col-sm-12 -->
+  </div> <!-- row -->
+</div> <!-- container -->
