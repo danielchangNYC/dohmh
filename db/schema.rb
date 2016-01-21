@@ -14,53 +14,53 @@
 ActiveRecord::Schema.define(version: 20160118015822) do
 
   create_table "establishments", force: :cascade do |t|
-    t.string   "camis",               limit: 255, null: false
-    t.string   "dba",                 limit: 255, null: false
-    t.string   "boro",                limit: 255, null: false
-    t.string   "building",            limit: 255, null: false
-    t.string   "street",              limit: 255, null: false
-    t.string   "zipcode",             limit: 255, null: false
-    t.string   "phone",               limit: 255
-    t.string   "cuisine_description", limit: 255, null: false
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.string   "camis",               null: false
+    t.string   "dba",                 null: false
+    t.string   "boro",                null: false
+    t.string   "building",            null: false
+    t.string   "street",              null: false
+    t.string   "zipcode",             null: false
+    t.string   "phone"
+    t.string   "cuisine_description", null: false
+    t.datetime "created_at",          null: false
+    t.datetime "updated_at",          null: false
   end
 
-  add_index "establishments", ["cuisine_description"], name: "index_establishments_on_cuisine_description", using: :btree
+  add_index "establishments", ["cuisine_description"], name: "index_establishments_on_cuisine_description"
 
   create_table "inspection_violations", force: :cascade do |t|
-    t.integer  "inspection_id", limit: 4, null: false
-    t.integer  "violation_id",  limit: 4, null: false
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.integer  "inspection_id", null: false
+    t.integer  "violation_id",  null: false
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
   end
 
-  add_index "inspection_violations", ["inspection_id"], name: "index_inspection_violations_on_inspection_id", using: :btree
-  add_index "inspection_violations", ["violation_id"], name: "index_inspection_violations_on_violation_id", using: :btree
+  add_index "inspection_violations", ["inspection_id"], name: "index_inspection_violations_on_inspection_id"
+  add_index "inspection_violations", ["violation_id"], name: "index_inspection_violations_on_violation_id"
 
   create_table "inspections", force: :cascade do |t|
-    t.integer  "establishment_id", limit: 4,   null: false
-    t.string   "action",           limit: 255, null: false
-    t.datetime "inspection_date",              null: false
-    t.integer  "score",            limit: 4
-    t.string   "grade",            limit: 255
+    t.integer  "establishment_id", null: false
+    t.string   "action",           null: false
+    t.datetime "inspection_date",  null: false
+    t.integer  "score"
+    t.string   "grade"
     t.datetime "grade_date"
     t.datetime "record_date"
-    t.string   "inspection_type",  limit: 255, null: false
-    t.datetime "created_at",                   null: false
-    t.datetime "updated_at",                   null: false
+    t.string   "inspection_type",  null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
   end
 
-  add_index "inspections", ["establishment_id"], name: "index_inspections_on_establishment_id", using: :btree
+  add_index "inspections", ["establishment_id"], name: "index_inspections_on_establishment_id"
 
   create_table "violations", force: :cascade do |t|
-    t.string   "code",        limit: 255, null: false
-    t.string   "description", limit: 255
-    t.boolean  "critical",                null: false
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.string   "code",        null: false
+    t.string   "description"
+    t.boolean  "critical",    null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
   end
 
-  add_index "violations", ["code"], name: "index_violations_on_code", using: :btree
+  add_index "violations", ["code"], name: "index_violations_on_code"
 
 end
