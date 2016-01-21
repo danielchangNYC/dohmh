@@ -25,19 +25,19 @@ class InspectionResultsImporter
 
     chunks = SmarterCSV.process(FILE_PATH, opts)
 
-    Parallel.each(chunks, in_processes: 7, progress: "Recording Establishments...") do |chunk|
+    Parallel.each(chunks, in_processes: 5, progress: "Recording Establishments...") do |chunk|
       record_establishments!(chunk)
     end
 
-    Parallel.each(chunks, in_processes: 7, progress: "Recording Violations...") do |chunk|
+    Parallel.each(chunks, in_processes: 5, progress: "Recording Violations...") do |chunk|
       record_violations!(chunk)
     end
 
-    Parallel.each(chunks, in_processes: 7, progress: "Recording Inspections...") do |chunk|
+    Parallel.each(chunks, in_processes: 5, progress: "Recording Inspections...") do |chunk|
       record_inspections!(chunk)
     end
 
-    Parallel.each(chunks, in_processes: 10, progress: "Recording Inspection Violations...") do |chunk|
+    Parallel.each(chunks, in_processes: 8, progress: "Recording Inspection Violations...") do |chunk|
       record_inspection_violations!(chunk)
     end
   end
@@ -127,7 +127,7 @@ class InspectionResultsImporter
 
   def record_inspection_violations!(chunk)
     chunk.each do |row|
-      return false unless violations?(row) || valid_inspection?(row)
+      return false unless violations?(row) && valid_inspection?(row)
       logger.debug "Recording inspection violation #{row[:camis]}" if debug
       tries = 60
 
