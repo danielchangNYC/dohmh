@@ -37,7 +37,7 @@ class InspectionResultsImporter
       record_inspections!(chunk)
     end
 
-    Parallel.each(chunks, in_processes: 10, progress: "Recording Inspections...") do |chunk|
+    Parallel.each(chunks, in_processes: 10, progress: "Recording Inspection Violations...") do |chunk|
       record_inspection_violations!(chunk)
     end
   end
@@ -80,7 +80,7 @@ class InspectionResultsImporter
             code: row[:violation_code].downcase,
             critical: critical_violation?(row))
           next if violation.persisted?
-          violation.description = row[:violation_description].downcase if violation.description.blank?
+          violation.description = row[:violation_description].downcase if violation.description.present?
           violation.save!
         end
       rescue SQLite3::BusyException, ActiveRecord::StatementInvalid => e
